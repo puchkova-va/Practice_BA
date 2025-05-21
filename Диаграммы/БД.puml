@@ -1,0 +1,148 @@
+@startuml edu_master_erd_with_fk
+hide circle
+skinparam linetype ortho
+
+' Сущности с явными FK
+entity "Пользователь" as user {
+  + id (PK)
+  --
+  * institution_id (fk)
+  * email: VARCHAR(255)
+  * password_hash:  VARCHAR(255)
+  * first_name:  VARCHAR(50)
+  * last_name: VARCHAR(50)
+  * role: ENUM
+  * phone: VARCHAR(20)
+  * avatar_url: VARCHAR(255)
+  * created_at: TIMESTAMP
+  * is_active: BOOLEAN
+  * last_login: TIMESTAMP 
+}
+
+entity "Учебное заведение" as institution {
+  + id (PK)
+  --
+  * name: VARCHAR(200)
+  * short_name: VARCHAR(50)
+  * tax_id: VARCHAR(20
+  * legal_address: TEXT 
+  * contact_email: VARCHAR(255)
+  * website: VARCHAR(255)
+  * logo_url: VARCHAR(255)
+  * contract_number: VARCHAR(50)
+  * contract_date: DATE
+  * is_verified: BOOLEAN
+}
+
+entity "Курс" as course {
+  + id (PK)
+  --
+  * title: VARCHAR(150)
+  * slug: VARCHAR(170)
+  * description: TEXT
+  * short_description: VARCHAR(300)
+  * cover_image_url: VARCHAR(255)
+  * status: ENUM
+  * price: DECIMAL(10,2)
+  * duration_hours: INT
+  * level: ENUM
+  * creator_id: UUID
+  * institution_id: UUID
+  * created_at: TIMESTAMP
+  * deleted_at: TIMESTAMP
+}
+
+entity "Модуль" as module {
+  + id (PK)
+  --
+  * course_id: FOREIGN KEY
+  * title: VARCHAR(100)
+  * order_number: INT
+  * objectives: TEXT
+  * is_free_preview: BOOLEAN
+}
+
+entity "Урок" as lesson {
+  + id (PK)
+  --
+  *  module_id: FOREIGN KEY 
+  *  title: VARCHAR(200)
+  *  lesson_type: ENUM
+  *  duration_minutes: INT
+  *  content: TEXT
+  *  video_url: VARCHAR(255)
+  *  is_published: BOOLEAN
+  *  published_at: TIMESTAMP
+  *  deadline_days: INT
+}
+
+entity "Материал" as resource {
+  + id (PK)
+  --
+  * lesson_id: FOREIGN KEY 
+  * file_name: VARCHAR(255)
+  * file_type: VARCHAR(50)
+  * file_size: BIGINT
+  * s3_key: VARCHAR(255)
+  * download_count: INT
+}
+
+entity "Прогресс" as progress {
+  + id (PK)
+  --
+  *  user_id: FOREIGN KEY
+  *  lesson_id: FOREIGN KEY 
+  *  status: ENUM
+  *  started_at: TIMESTAMP
+  *  completed_at: TIMESTAMP
+  *  last_activity: TIMESTAMP
+  *  attempts: INT
+}
+
+entity "Оценка" as grade {
+  + id (PK)
+  --
+  * progress_id: FOREIGN KEY 
+  * score: DECIMAL(5,2)
+  * max_score: DECIMAL(5,2)
+  * teacher_comment: TEXT
+  * auto_feedback: TEXT
+  * graded_by: FOREIGN KEY
+  * graded_at: TIMESTAMP
+}
+entity "Платеж" as payment {
+  + id (PK)
+  --
+  * user_id: FOREIGN KEY
+  * course_id: FOREIGN KEY 
+  * amount: DECIMAL(10,2)
+  * payment_method: ENUM
+  * transaction_id: VARCHAR(255)
+  * status: ENUM
+  * receipt_url: VARCHAR(255)
+  * created_at: TIMESTAMP
+}
+
+entity "Сертификат" as certificate {
+  + id (PK)
+  --
+  * user_id: FOREIGN KEY
+  * course_id: FOREIGN KEY 
+  * certificate_number: VARCHAR(50)
+  * issue_date: DATE
+  * expiry_date: DATE
+  * verification_url: VARCHAR(255)
+  * pdf_url: VARCHAR(255) 
+}
+' Связи
+user }|--|| institution
+user ||--o{ course
+institution ||--o{ course
+course ||--o{ module
+module ||--o{ lesson
+lesson ||--o{ resource
+user ||--o{ progress
+lesson ||--o{ grade
+user }o--|| payment
+course ||--o{ certificate
+@enduml

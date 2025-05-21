@@ -1,0 +1,25 @@
+@startuml context_diagram
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Диаграмма контекста: Обучение онлайн
+
+Person(admin, "Администратор", "Управляет пользователями и курсами")
+Person(teacher, "Преподаватель", "Создает курсы, проверяет задания")
+Person(student, "Студент", "Изучает материалы, сдает работы")
+
+System_Boundary(platform, "Платформа EduPlatform") {
+    System(learning_system, "Система онлайн-обучения", "Обеспечивает весь цикл обучения")
+}
+
+Rel(admin, learning_system, "Управляет через админ-панель")
+Rel(teacher, learning_system, "Создает курсы и проверяет задания")
+Rel(student, learning_system, "Проходит курсы и сдает тесты")
+
+System_Ext(payment_gateway, "Платежный шлюз", "Обработка оплат (Stripe/SBP)")
+System_Ext(email_service, "Email-сервис", "Отправка уведомлений (SendGrid)")
+System_Ext(storage, "Облачное хранилище", "Хранение файлов (S3/MinIO)")
+
+Rel(learning_system, payment_gateway, "Проводит платежи")
+Rel(learning_system, email_service, "Отправляет уведомления")
+Rel(learning_system, storage, "Сохраняет материалы курсов")
+@enduml

@@ -1,0 +1,62 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+title Диаграмма контейнеров: Микросервисная архитектура EduMaster
+
+Person(admin, "Администратор", "Управляет пользователями и курсами")
+Person(teacher, "Преподаватель", "Создает курсы и проверяет задания")
+Person(student, "Студент", "Изучает материалы и сдает работы")
+
+System_Boundary(edu_platform, "Платформа EduMaster Pro") {
+    Container(web_app, "Веб-приложение", "React", "Single Page Application")
+    Container(api_gateway, "API Gateway", "Kong", "Маршрутизация и балансировка нагрузки")
+    
+    Container(auth_service, "Сервис аутентификации", "Node.js", "JWT-аутентификация, OAuth 2.0")
+    Container(course_service, "Сервис курсов", "Spring Boot", "Управление курсами и контентом")
+    Container(progress_service, "Сервис прогресса", "Python", "Трекинг обучения и аналитика")
+    Container(payment_service, "Платежный сервис", "Go", "Интеграция с платежными системами")
+    Container(notification_service, "Сервис уведомлений", "Node.js", "Email и push-уведомления")
+    
+    ContainerDb(main_db, "Основная БД", "PostgreSQL", "Хранение структурированных данных")
+    ContainerDb(analytics_db, "Аналитическая БД", "MongoDB", "Хранение данных прогресса")
+    ContainerDb(file_storage, "Файловое хранилище", "AWS S3", "Хранение медиа-контента")
+    ContainerDb(cash_storage, "Хранилище кэша", "Redis", "Хранение кэша")
+}
+
+' Взаимодействия пользователей
+Rel(admin, web_app, "Управляет", "HTTPS")
+Rel(teacher, web_app, "Создает курсы", "HTTPS")
+Rel(student, web_app, "Проходит обучение", "HTTPS")
+
+' Взаимодействия между сервисами
+Rel(web_app, api_gateway, "API запросы", "HTTPS")
+Rel(api_gateway, auth_service, "Проверка токенов", "gRPC")
+Rel(api_gateway, course_service, "Запросы курсов", "REST")
+Rel(api_gateway, progress_service, "Данные прогресса", "REST")
+
+' Взаимодействия с БД
+Rel(auth_service, main_db, "Хранение учетных данных", "JDBC")
+Rel(course_service, main_db, "Хранение данных курсов", "Hibernate")
+Rel(progress_service, analytics_db, "Запись прогресса", "MongoDB Driver")
+Rel_R(course_service, cash_storage, "Хранение кэша")
+
+' Внешние интеграции
+System_Ext(stripe, "Stripe", "Платежная система")
+System_Ext(sendgrid, "SendGrid", "Email-сервис")
+
+Rel(payment_service, stripe, "Обработка платежей", "REST API")
+Rel(notification_service, sendgrid, "Отправка email", "SMTP")
+
+' Дополнительные связи
+Rel(course_service, file_storage, "Хранение медиа", "S3 API")
+Rel(progress_service, notification_service, "Триггеры уведомлений", "Kafka")
+Rel(payment_service, course_service, "Проверка доступа", "gRPC")
+
+legend right
+  **Технологический стек:**
+  *Frontend*: React
+  *Backend*: Node.js/Spring/Python/Go
+  *БД*: PostgreSQL/MongoDB
+  *Инфраструктура*: Docker/K8s
+end legend
+@enduml
