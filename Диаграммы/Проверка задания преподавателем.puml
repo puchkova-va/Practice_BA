@@ -1,0 +1,28 @@
+@startuml sequence_assessment
+title Проверка задания преподавателем
+
+actor Преподаватель as teacher
+participant "Админ-панель" as admin
+participant "API Gateway" as api
+participant "Сервис курсов" as courses
+participant "Сервис уведомлений" as notify
+database "БД курсов" as db
+
+teacher -> admin: Открывает работу студента
+admin -> api: GET /api/submissions/{id}
+api -> courses: Запрос работы
+courses -> db: Получение данных
+db --> courses: Файлы и ответы
+courses --> api: Данные для проверки
+api --> admin: Отображение работы
+
+teacher -> admin: Вводит оценку и комментарий
+admin -> api: PUT /api/grades
+api -> courses: Сохранение оценки
+courses -> db: Обновление записи
+db --> courses: Подтверждение
+courses -> notify: Запрос на уведомление
+notify --> courses: Принято
+courses --> api: 200 OK
+api --> admin: Подтверждение проверки
+@enduml

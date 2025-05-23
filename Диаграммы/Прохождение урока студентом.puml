@@ -1,0 +1,33 @@
+@startuml sequence_lesson_completion
+title Прохождение урока студентом
+
+actor Студент as student
+participant "Веб-приложение" as front
+participant "API Gateway" as gateway
+participant "Сервис курсов" as course
+participant "Сервис прогресса" as progress
+participant "Основная БД" as db
+
+student -> front: Загружает страницу урока
+front -> gateway: GET /api/lessons/{id}
+gateway -> course: Проверка доступа
+course -> db: Запрос данных урока
+db --> course: Данные урока
+course --> gateway: Ответ с контентом
+gateway --> front: Отображение урока
+
+student -> front: Отмечает урок как пройденный
+front -> gateway: POST /api/progress
+gateway -> progress: Обновление прогресса
+progress -> db: Сохранение статуса
+db --> progress: Подтверждение
+progress --> gateway: 200 OK
+gateway --> front: Обновление интерфейса
+
+front -> gateway: GET /api/next-lesson
+gateway -> course: Поиск следующего урока
+course -> db: Запрос структуры курса
+db --> course: Данные модулей
+course --> gateway: ID следующего урока
+gateway --> front: Перенаправление
+@enduml

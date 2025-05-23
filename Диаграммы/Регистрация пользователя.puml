@@ -1,0 +1,40 @@
+@startuml sequence_user_registration
+title Процесс регистрации пользователя
+
+actor Гость as guest
+participant "Веб-приложение" as front
+participant "API Gateway" as api
+participant "Сервис аутентификации" as auth
+participant "Email-сервис" as email
+database "Основная БД" as db
+
+guest -> front: Заполняет форму регистрации
+front -> api: POST /api/auth/register\n{email, password, name}
+api -> auth: Валидация данных
+
+alt Данные корректные
+    auth -> db: Проверка уникальности email
+    db --> auth: Email свободен
+    auth -> db: Создание пользователя
+    db --> auth: ID пользователя
+    
+    auth -> email: Запрос на отправку\nверификационного письма
+    email --> auth: Письмо отправлено
+    
+    auth --> api: 201 Created\n+ verification_pending
+    api --> front: Редирект на страницу\nожидания верификации
+else Ошибка валидации
+    auth --> api: 400 Bad Request\n{errors}
+    api --> front: Отображение ошибок\nв форме
+end
+
+group Верификация email [асинхронно]
+    guest -> email: Переходит по ссылке\nиз письма
+    email -> api: GET /api/auth/verify?token=...
+    api -> auth: Проверка токена
+    auth -> db: Активация аккаунта
+    db --> auth: Подтверждение
+    auth --> api: 302 Redirect\nна /login
+    api --> guest: Перенаправление\nна страницу входа
+end
+@enduml

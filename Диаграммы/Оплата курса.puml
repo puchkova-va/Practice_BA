@@ -1,0 +1,31 @@
+@startuml sequence_course_payment
+title Процесс оплаты курса
+
+actor Студент as user
+participant "Frontend" as front
+participant "API Gateway" as api
+participant "Платежный сервис" as payment
+participant "Сервис курсов" as courses
+participant "Stripe" as stripe
+database "БД платежей" as pay_db
+
+user -> front: Нажимает "Купить курс"
+front -> api: POST /payments/create
+api -> payment: Инициализация платежа
+payment -> pay_db: Создание записи
+pay_db --> payment: ID транзакции
+payment -> stripe: Создание сессии
+stripe --> payment: URL оплаты
+payment --> api: Перенаправление
+api --> front: Открытие платежной формы
+
+user -> stripe: Ввод карты и подтверждение
+stripe -> payment: Webhook (успех)
+payment -> pay_db: Обновление статуса
+pay_db --> payment: OK
+payment -> courses: Разрешить доступ
+courses --> payment: Подтверждение
+payment -> api: Уведомление
+api -> front: Обновление статуса
+front -> user: Доступ к курсу открыт
+@enduml
